@@ -6,14 +6,13 @@ import ExtractTextPlugin from 'extract-text-webpack-plugin';
 import SystemBellPlugin from 'system-bell-webpack-plugin';
 import CleanPlugin from 'clean-webpack-plugin';
 import merge from 'webpack-merge';
-import React from 'react';
-import ReactDOM from 'react-dom/server';
+
 
 import renderJSX from './lib/render.jsx';
-import App from './demo/App.jsx';
+
 import pkg from './package.json';
 
-const RENDER_UNIVERSAL = true;
+
 const TARGET = process.env.npm_lifecycle_event;
 const ROOT_PATH = __dirname;
 const config = {
@@ -23,8 +22,8 @@ const config = {
     demo: path.join(ROOT_PATH, 'demo'),
     tests: path.join(ROOT_PATH, 'tests')
   },
-  filename: 'boilerplate',
-  library: 'Boilerplate'
+  filename: 'main',
+  library: 'Reactprogressbar'
 };
 const CSS_PATHS = [
   config.paths.demo,
@@ -35,8 +34,6 @@ const CSS_PATHS = [
   path.join(ROOT_PATH, 'node_modules/react-ghfork/gh-fork-ribbon.css')
 ];
 const STYLE_ENTRIES = [
-  'purecss',
-  'highlight.js/styles/github.css',
   'react-ghfork/gh-fork-ribbon.ie.css',
   'react-ghfork/gh-fork-ribbon.css',
   './demo/main.css',
@@ -179,8 +176,7 @@ if (TARGET === 'gh-pages' || TARGET === 'gh-pages:stats') {
         title: pkg.name + ' - ' + pkg.description,
         template: 'lib/index_template.ejs',
         inject: false
-      }, renderJSX(
-        __dirname, pkg, RENDER_UNIVERSAL ? ReactDOM.renderToString(<App />) : '')
+      }, renderJSX(__dirname, pkg)
       )),
       new NamedModulesPlugin(),
       new webpack.optimize.DedupePlugin(),
@@ -240,7 +236,7 @@ if (TARGET === 'test' || TARGET === 'test:tdd' || !TARGET) {
   })
 }
 
-const distCommon = {
+const distCommon = merge(demoCommon, {
   devtool: 'source-map',
   output: {
     path: config.paths.dist,
@@ -259,6 +255,10 @@ const distCommon = {
   module: {
     loaders: [
       {
+          test: /\.css$/,
+          loaders: ['style', 'css']
+      },
+      {
         test: /\.jsx?$/,
         loaders: ['babel'],
         include: config.paths.src
@@ -268,7 +268,7 @@ const distCommon = {
   plugins: [
     new SystemBellPlugin()
   ]
-};
+});
 
 if (TARGET === 'dist') {
   module.exports = merge(distCommon, {
@@ -292,3 +292,4 @@ if (TARGET === 'dist:min') {
     ]
   });
 }
+
